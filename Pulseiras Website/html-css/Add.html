@@ -1,23 +1,107 @@
-<html lang="en">
+<!DOCTYPE html>
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=main class="pagina-produtos">
-    <h1>Adicionar Produto</h1>
-
-    <form class="form-add">
-      <input type="text" placeholder="Nome do Produto" required>
-      <input type="number" placeholder="Preço" required>
-      <input type="text" placeholder="Padrão" required>
-      <input type="number" placeholder="Tamanho em cm" required>
-      <input type="number" placeholder="Número de fios" required>
-      <input type="text" placeholder="Cores (separadas por vírgula)" required>
-      <input type="text" placeholder="Tipo de fecho" required>
-      <button type="submit" class="botao-add">Guardar Produto</button>
-    </form>
-  </main>, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Produto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg bg-dark navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="imagens/imagem.png" height="40">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Página Inicial</a></li>
+                    <li class="nav-item"><a class="nav-link" href="produtos.html">Produtos</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="add.html">➕ Novo Produto</a></li>
+                    <li class="nav-item"><a class="nav-link" href="ShoopingCart.html">🛒 Carrinho</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5 pt-5 mb-5" style="max-width: 600px;">
+        <div class="card p-4 shadow-sm border-0 bg-white">
+            <h2 class="fw-bold text-center mb-4">➕ Novo Produto</h2>
+            
+            <form id="formNovoProduto" onsubmit="gravarProduto(event)">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nome da Pulseira</label>
+                    <input type="text" id="nome" class="form-control" required>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Preço (€)</label>
+                        <input type="number" id="preco" class="form-control" step="0.01" min="0.50" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Score (1 a 5)</label>
+                        <input type="number" id="score" class="form-control" min="1" max="5" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Padrão</label>
+                        <input type="text" id="padrao" class="form-control" placeholder="Ex: Ondas" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Categoria</label>
+                        <select id="categoria" class="form-select">
+                            <option value="Casual">Casual</option>
+                            <option value="Étnico">Étnico</option>
+                            <option value="Elegante">Elegante</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow">Adicionar Produto</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:3000/produtos";
+
+        async function gravarProduto(event) {
+            event.preventDefault();
+
+            const novoItem = {
+                id: String(Date.now()), 
+                nome: document.getElementById("nome").value,
+                preco_eur: parseFloat(document.getElementById("preco").value),
+                score: parseInt(document.getElementById("score").value),
+                padrao: document.getElementById("padrao").value,
+                categoria: document.getElementById("categoria").value,
+                tamanho_cm: 17,
+                img: "imagens/OceanBreeze.png"
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(novoItem)
+                });
+
+                if(response.ok) {
+                    alert("Produto adicionado com sucesso via POST!");
+                    window.location.href = "produtos.html";
+                } else {
+                    alert("Erro na API ao salvar.");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Erro: O json-server está ligado?");
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
