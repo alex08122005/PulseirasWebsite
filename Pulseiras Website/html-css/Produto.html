@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Produto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg bg-dark navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="imagens/imagem.png" height="40">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Página Inicial</a></li>
+                    <li class="nav-item"><a class="nav-link" href="produtos.html">Produtos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="add.html">➕ Novo Produto</a></li>
+                    <li class="nav-item"><a class="nav-link" href="ShoopingCart.html">🛒 Carrinho</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5 pt-5">
+        <div id="detalheCard" class="card shadow border-0 p-4 bg-white mt-4">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">A carregar detalhes da pulseira...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const produtoId = urlParams.get('id');
+        const API_URL = "http://localhost:3000/produtos/" + produtoId;
+        let produtoAtual = null;
+
+        async function carregarDetalhes() {
+            if (!produtoId) {
+                document.getElementById("detalheCard").innerHTML = "<p class='text-danger text-center'>ID inválido.</p>";
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL);
+                if(!response.ok) throw new Error("Produto não existe na base de dados.");
+                
+                produtoAtual = await response.json();
+                
+                // Validar se exibe o botão de apagar
+                let botaoEliminarDoSistema = "";
+                if (produtoAtual.id !== "1" && produtoAtual.id !== "2" && produtoAtual.id !== "3" && produtoAtual.id !== "4" && produtoAtual.id !== "5" && produtoAtual.id !== "6") {
+                    botaoEliminarDoSistema = `<button onclick="removerProdutoTotal()" class="btn btn-danger btn-lg shadow">🗑️ Eliminar do Sistema</button>`;
+                }
+
+                document.getElementById("detalheCard").innerHTML = `
+                    <div class="row g-4">
+                        <div class="col-md-6 text-center">
+                            <img src="${produtoAtual.img}" class="img-fluid rounded shadow-sm" style="max-height: 400px; object-fit: cover; width: 100%;">
+                        </div>
+                        <div class="col-md-6 d-flex flex-column justify-content-center">
+                            <span class="badge bg-primary align-self-start mb-2">${produtoAtual.categoria}</span>
+                            <h2 class="fw-bold mb-1">${produtoAtual.nome}</h2>
+                            <p class="text-warning fs-5 mb-3">⭐ Avaliação: ${produtoAtual.score}/5</p>
+                            <hr>
+                            <p class="mb-2"><strong>Padrão de Tecelagem:</strong> ${produtoAtual.padrao}</p>
+                            <p class="mb-4"><strong>Tamanho Base:</strong> ${produtoAtual.tamanho_cm} cm</p>
+                            <h3 class="fw-bold text-dark mb-4">${produtoAtual.preco_eur.toFixed(2)}€</h3>
+                            
+                            <div class="d-flex flex-wrap gap-2">
+                                <button onclick="adicionarAoCarrinho()" class="btn btn-success btn-lg shadow">🛒 Adicionar ao Carrinho</button>
+                                ${botaoEliminarDoSistema}
+                                <a href="produtos.html" class="btn btn-outline-dark btn-lg">Voltar ao Catálogo</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById("detalheCard").innerHTML = `<p class='text-danger text-center'>Erro: ${error.message}</p>`;
+            }
+        }
+
+        function adicionarAoCarrinho() {
+            if (!produtoAtual) return;
+            let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+            carrinho.push(produtoAtual);
+            localStorage.setItem('carrinho', JSON.stringify(carrinho));
+            alert(`"${produtoAtual.nome}" foi adicionada ao teu carrinho!`);
+        }
+
+        async function removerProdutoTotal() {
+            if(!confirm("Queres mesmo apagar esta pulseira criada por ti?")) return;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'DELETE'
+                });
+
+                if(response.ok) {
+                    alert("Produto eliminado.");
+                    window.location.href = "produtos.html";
+                } else {
+                    alert("Erro ao tentar eliminar.");
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        carregarDetalhes();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
