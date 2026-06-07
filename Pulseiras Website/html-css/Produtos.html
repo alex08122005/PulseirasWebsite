@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💎 Toda a Coleção - Produtos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg bg-dark navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="imagens/imagem.png" height="40">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="navbar-nav ms-auto align-items-center" id="navLinks">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Página Inicial</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="produtos.html">Produtos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="add.html">➕ Novo Produto</a></li>
+                    <li class="nav-item"><a class="nav-link" href="ShoopingCart.html">🛒 Carrinho</a></li>
+                    <li class="nav-item"><a class="nav-link" href="login.html">🔐 Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="bg-white py-5 mt-5 border-bottom text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold">💎 Toda a Coleção</h1>
+            <p class="lead">Filtre e explore o nosso catálogo em tempo real.</p>
+        </div>
+    </section>
+
+    <div class="container mt-4">
+        <div class="row g-3 bg-white p-3 rounded shadow-sm">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Filtrar por Categoria</label>
+                <select id="filtroCategoria" class="form-select" onchange="aplicarFiltros()">
+                    <option value="todos">Todas as Categorias</option>
+                    <option value="Casual">Casual</option>
+                    <option value="Étnico">Étnico</option>
+                    <option value="Elegante">Elegante</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Preço Máximo (<span id="valPreco">30</span>€)</label>
+                <input type="range" id="filtroPreco" class="form-range" min="0" max="30" step="1" value="30" oninput="atualizarPrecoTxt()">
+            </div>
+        </div>
+    </div>
+
+    <section class="py-5">
+        <div class="container">
+            <div id="listaProdutos" class="row g-4"></div>
+        </div>
+    </section>
+
+    <script>
+        const API_URL = "http://localhost:3000/produtos";
+        let listagemCompleta = [];
+
+        async function obterProdutos() {
+            try {
+                const response = await fetch(API_URL);
+                listagemCompleta = await response.json();
+                renderizar(listagemCompleta);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function renderizar(lista) {
+            const container = document.getElementById("listaProdutos");
+            container.innerHTML = "";
+
+            if(lista.length === 0) {
+                container.innerHTML = `<p class="text-center text-muted col-12">Nenhuma pulseira corresponde aos filtros.</p>`;
+                return;
+            }
+
+            for(let i=0; i<lista.length; i++) {
+                let p = lista[i];
+                let botaoRemover = "";
+                if (p.id !== "1" && p.id !== "2" && p.id !== "3" && p.id !== "4" && p.id !== "5" && p.id !== "6") {
+                    botaoRemover = '<button onclick="eliminarProdutoDaAPI(\'' + p.id + '\')" class="btn btn-danger btn-sm px-3">🗑️ Remover</button>';
+                }
+
+                container.innerHTML += '<div class="col-sm-6 col-lg-4">' +
+                    '<div class="card h-100 shadow-sm border-0">' +
+                        '<a href="produto.html?id=' + p.id + '">' +
+                            '<img src="' + p.img + '" class="card-img-top bg-light" style="height: 220px; object-fit: cover;">' +
+                        '</a>' +
+                        '<div class="card-body d-flex flex-column">' +
+                            '<h5 class="card-title fw-bold">' + p.nome + '</h5>' +
+                            '<p class="card-text mb-1 small text-muted"><strong>Padrão:</strong> ' + p.padrao + '</p>' +
+                            '<p class="card-text mb-1 small text-muted"><strong>Categoria:</strong> ' + p.categoria + '</p>' +
+                            '<p class="card-text fw-bold text-primary fs-5 mt-2 mb-3">' + p.preco_eur.toFixed(2) + '€</p>' +
+                            '<div class="d-flex gap-2 mt-auto">' +
+                                '<a href="produto.html?id=' + p.id + '" class="btn btn-outline-primary btn-sm flex-grow-1">Ver Detalhes</a>' +
+                                botaoRemover +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+        }
+
+        async function eliminarProdutoDaAPI(id) {
+            if (!confirm("Tens a certeza?")) return;
+            try {
+                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    alert("Removido!");
+                    listagemCompleta = listagemCompleta.filter(item => item.id !== id);
+                    aplicarFiltros();
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        function atualizarPrecoTxt() {
+            document.getElementById("valPreco").innerText = document.getElementById("filtroPreco").value;
+            aplicarFiltros();
+        }
+
+        function aplicarFiltros() {
+            const catSelecionada = document.getElementById("filtroCategoria").value;
+            const precoMax = parseFloat(document.getElementById("filtroPreco").value);
+            let filtrados = listagemCompleta.filter(p => {
+                let matchCat = (catSelecionada === "todos" || p.categoria === catSelecionada);
+                let matchPreco = (p.preco_eur <= precoMax);
+                return matchCat && matchPreco;
+            });
+            renderizar(filtrados);
+        }
+
+        function verificarNavbar() {
+            const user = localStorage.getItem("utilizador");
+            if(user) {
+                document.getElementById("navLinks").innerHTML = `
+                    <li class="nav-item"><a class="nav-link" href="index.html">Página Inicial</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="produtos.html">Produtos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="add.html">➕ Novo Produto</a></li>
+                    <li class="nav-item"><a class="nav-link" href="ShoopingCart.html">🛒 Carrinho</a></li>
+                    <li class="nav-item"><span class="nav-link text-warning fw-bold">👋 ${user}</span></li>
+                    <li class="nav-item"><button onclick="logout()" class="btn btn-sm btn-outline-danger ms-2">Sair</button></li>
+                `;
+            }
+        }
+        function logout() {
+            localStorage.removeItem("utilizador");
+            window.location.reload();
+        }
+
+        verificarNavbar();
+        obterProdutos();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
